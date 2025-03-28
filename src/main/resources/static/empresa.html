@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Ofertas</title>
+    <script>
+        // Función para obtener las ofertas y mostrarlas en la tabla
+        async function fetchOfertas() {
+            const response = await fetch('/oferta', { method: 'GET', headers: { 'Accept': 'application/json' } });
+            const ofertas = await response.json();
+            const tableBody = document.getElementById('oferta-table-body');
+            tableBody.innerHTML = ''; // Limpiar la tabla antes de llenarla
+
+            ofertas.forEach(oferta => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${oferta.titulo || ''}</td>
+                    <td>${oferta.descripcion || ''}</td>
+                    <td>${oferta.requisitos || ''}</td>
+                    <td><button onclick="deleteOferta('${oferta.id}')">Eliminar</button></td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Función para añadir una nueva oferta
+        async function addOferta(event) {
+            event.preventDefault(); // Evitar que el formulario recargue la página
+            const titulo = document.getElementById('titulo').value;
+            const descripcion = document.getElementById('descripcion').value;
+            const requisitos = document.getElementById('requisitos').value;
+
+            const response = await fetch('/oferta', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ titulo, descripcion, requisitos })
+            });
+
+            if (response.ok) {
+                alert('Oferta añadida correctamente');
+                document.getElementById('add-oferta-form').reset(); // Limpiar el formulario
+                fetchOfertas(); // Actualizar la tabla
+            } else {
+                alert('Error al añadir la oferta');
+            }
+        }
+
+        // Función para eliminar una oferta
+        async function deleteOferta(id) {
+            const response = await fetch(`/oferta/${id}`, { method: 'DELETE' });
+
+            if (response.ok) {
+                alert('Oferta eliminada correctamente');
+                fetchOfertas(); // Actualizar la tabla
+            } else {
+                alert('Error al eliminar la oferta');
+            }
+        }
+
+        // Inicializar la página cargando las ofertas
+        window.onload = fetchOfertas;
+
+        // Asociar el evento de envío del formulario a la función addOferta
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('add-oferta-form').addEventListener('submit', addOferta);
+        });
+    </script>
+</head>
+<body>
+    <h1>Gestión de Ofertas</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Título</th>
+                <th>Descripción</th>
+                <th>Requisitos</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="oferta-table-body">
+            <!-- Los datos se llenarán aquí dinámicamente -->
+        </tbody>
+    </table>
+
+    <form id="add-oferta-form">
+        <h2>Añadir Oferta</h2>
+        <label for="titulo">Título:</label>
+        <input type="text" id="titulo" name="titulo" required><br>
+        <label for="descripcion">Descripción:</label>
+        <input type="text" id="descripcion" name="descripcion" required><br>
+        <label for="requisitos">Requisitos:</label>
+        <input type="text" id="requisitos" name="requisitos" required><br>
+        <button type="submit">Añadir Oferta</button>
+    </form>
+</body>
+</html>
